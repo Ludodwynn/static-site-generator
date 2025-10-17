@@ -3,6 +3,7 @@ from markdown_blocks import (
     markdown_to_html_node,
     markdown_to_blocks,
     block_to_block_type,
+    extract_title,
     BlockType,
 )
 
@@ -162,6 +163,32 @@ the **same** even with inline stuff
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+class TestExtractTitle(unittest.TestCase):
+
+    def test_extract_title(self):
+        # Cas 1 : Titre h1 simple
+        assert extract_title("# Mon Titre") == "Mon Titre"
+
+        # Cas 2 : Titre h1 sans espace après #
+        assert extract_title("#Mon Titre") == "Mon Titre"
+
+        # Cas 3 : Titre h1 avec espaces irréguliers
+        assert extract_title("#   Mon Titre   ") == "Mon Titre"
+
+        # Cas 4 : Ignore les h2+ et retourne le h1
+        markdown = """
+        ## Sous-titre
+        # Mon Titre
+        """
+        assert extract_title(markdown) == "Mon Titre"
+
+        # Cas 5 : Pas de titre h1 (doit lever une exception)
+        try:
+            extract_title("## Sous-titre\nPas de h1")
+            assert False, "Should have raised an exception"
+        except Exception as e:
+            assert str(e) == "Title h1 missing"
 
 
 if __name__ == "__main__":
